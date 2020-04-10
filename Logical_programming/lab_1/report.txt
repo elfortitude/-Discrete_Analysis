@@ -1,0 +1,261 @@
+\documentclass[12pt]{article}
+
+\usepackage{fullpage}
+\usepackage{multicol,multirow}
+\usepackage{tabularx}
+\usepackage{ulem}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{color} %% это для отображения цвета в коде
+\usepackage{listings} %% собственно, это и есть пакет listings
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}} %% это сделает текст заголовка белым
+%% код ниже нарисует серую рамочку вокруг заголовка кода.
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+
+\begin{document}
+
+\section*{Отчет по лабораторной работе №\,1: Обработка списков по курсу Логическое программирование}
+
+Выполнила студентка группы 08-307 МАИ \textit{Усачева Елизавета}.
+
+\subsection*{Введение}
+
+В логических языках программирования, так же как в императивных или функциональных, списки используются часто. Они важны тем, что позволяют хранить набор данных почти любой длины. В языке Prolog список представляет собой структуру данных, состоящую из узлов, т.е. формируя как бы односвязный список. Списки в Prolog имеют существенные отличия от массивов, используемых в императивных языках. Например, элемент можеть быть легко добавлен или, наоборот, удален из начала списка. Однако, чтобы получить доступ к произвольному ({\it n}-му) элементу потребуется {\it n} операций перехода по ссылкам вдоль списка, в отличие от массивов в императивных языках, где подобная операция имеет имеет сложность {\it O(1)}. 
+При работе с односвязными списками необходимо выделять первый узел (называемый головой списка), остальные узлы (составляющие хвост списка) можно получить передвигаясь по указателям вплоть до последнего узла. Хвост списка является таким же списком, как и исходный, поэтому обрабатывается аналогичным образом (рекурсивно).
+
+\subsection*{Задание 1: Реализация стандартных предикатов}
+
+\begin{itemize}
+    \item Предикат вычисления длины списка
+        \lstset{ %
+            language=Prolog,
+            basicstyle=\small\sffamily,
+            numbers=left,
+            numberstyle=\tiny,
+            stepnumber=1,
+            numbersep=5pt,
+            backgroundcolor=\color{white},
+            showspaces=false,
+            showstringspaces=false,
+            showtabs=false,
+            frame=single,
+            captionpos=t,
+            breaklines=true,
+            breakatwhitespace=false,
+            escapeinside={\%*}{*)}
+        }
+        \begin{lstlisting}
+my_length([], 0).
+my_length([_|T], N) :-
+    my_length(T, N1), N is N1+1.
+        \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_length([], X).
+X = 0.
+
+?- my_length([1, 2, 3], X).
+X = 3.
+    \end{lstlisting}
+    \item Предикат принадлежности
+    \begin{lstlisting}
+my_member(X, [X|_]).
+my_member(X, [_|T]) :-
+    my_member(X, T).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_member(X, [1, 2, 3]).
+X = 1 ;
+X = 2 ;
+X = 3 .
+    \end{lstlisting}
+    \begin{lstlisting}
+?- my_member(99, [1, 2, 99, 3]).
+true .
+    \end{lstlisting}
+    \item Конкатенация списков
+    \begin{lstlisting}
+my_append([], M, M).
+my_append([H|T], M, [H|X]) :-
+    my_append(T, M, X).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_append([1, 2, 3], 4, X).
+X = [1, 2, 3, 4].
+    \end{lstlisting}
+    \item Предикат удаления элемента из списка
+    \begin{lstlisting}
+my_remove(M, [M|T], T).
+my_remove(M, [H|T], [H|X]) :-
+    my_remove(M, T, X).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_remove(3, [1, 2, 3, 4], X).
+X = [1, 2, 4] .
+    \end{lstlisting}
+    \item Перестановки в списке
+    \begin{lstlisting}
+my_sublist([], []).
+my_permute(L, [H|T]) :-
+    my_remove(H, L, X),
+    my_permute(X, T).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_permute([1, 2, 3], X).
+X = [1, 2, 3] ;
+X = [1, 3, 2] ;
+X = [2, 1, 3] ;
+X = [2, 3, 1] ;
+X = [3, 1, 2] ;
+X = [3, 2, 1] .
+    \end{lstlisting}
+    \item Подсписок списка
+    \begin{lstlisting}
+my_sublist([], []).
+my_sublist(X, Y) :-
+    my_append(_, T, Y),
+    my_append(X, _, T).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_sublist(X, [1, 2, 3]).
+X = [] ;
+X = [1] ;
+X = [1, 2] ;
+X = [1, 2, 3] ;
+X = [] ;
+X = [2] ;
+X = [2, 3] ;
+X = [] ;
+X = [3] ;
+X = [] .
+    \end{lstlisting}
+\end{itemize}
+
+\subsection*{Задание 2: Предикаты обработки списков (индивидуальное задание)}
+Вариант 1: получение последнего элемента списка.
+
+\begin{itemize}
+    \item Реализация с использованием стандартных предикатов:
+     \lstset{ %
+            language=Prolog,
+            basicstyle=\small\sffamily,
+            numbers=left,
+            numberstyle=\tiny,
+            stepnumber=1,
+            numbersep=5pt,
+            backgroundcolor=\color{white},
+            showspaces=false,
+            showstringspaces=false,
+            showtabs=false,
+            frame=single,
+            captionpos=t,
+            breaklines=true,
+            breakatwhitespace=false,
+            escapeinside={\%*}{*)}
+        }
+    \begin{lstlisting}
+last_elem(X, L) :-
+    append(_, [X], L).
+        \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- last_elem(X, [1, 2, 3]).
+X = 3.
+    \end{lstlisting}
+    \item Реализация без использованием стандартных предикатов:
+    \begin{lstlisting}
+my_last_elem(X, [X]).
+my_last_elem(X, [_|T]) :-
+    my_last_elem(X, T).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_last_elem(X, [1, 2, 3]).
+X = 3.
+    \end{lstlisting}
+\end{itemize}
+
+\subsection*{Задание 3: Предикаты обработки числовых списков (индивидуальное задание)}
+Вариант 1: вычисление суммы элементов списка.
+\begin{itemize}
+    \item Реализация без использования стандартный предикатов:
+    \lstset{ %
+            language=Prolog,
+            basicstyle=\small\sffamily,
+            numbers=left,
+            numberstyle=\tiny,
+            stepnumber=1,
+            numbersep=5pt,
+            backgroundcolor=\color{white},
+            showspaces=false,
+            showstringspaces=false,
+            showtabs=false,
+            frame=single,
+            captionpos=t,
+            breaklines=true,
+            breakatwhitespace=false,
+            escapeinside={\%*}{*)}
+        }
+    \begin{lstlisting}
+my_sum([], 0).
+my_sum([H|T], X) :-
+	my_sum(T, X1),
+	X is H + X1.
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_sum([1, 2, 3], X).
+X = 6.
+
+?- my_sum([1, 2, 20], X).
+X = 23.
+
+?- my_sum([], X).
+X = 0.
+    \end{lstlisting}
+\end{itemize}
+
+\subsection*{Задание 4: Пример совместного использования предикатов, реализованных в предыдущих пунктах}
+\begin{itemize}
+    \item Удаление последнего элемента списка.:
+    \lstset{ %
+            language=Prolog,
+            basicstyle=\small\sffamily,
+            numbers=left,
+            numberstyle=\tiny,
+            stepnumber=1,
+            numbersep=5pt,
+            backgroundcolor=\color{white},
+            showspaces=false,
+            showstringspaces=false,
+            showtabs=false,
+            frame=single,
+            captionpos=t,
+            breaklines=true,
+            breakatwhitespace=false,
+            escapeinside={\%*}{*)}
+        }
+    \begin{lstlisting}
+my_delete_last(L, X) :-
+    my_last_elem(Y, L), my_remove(Y, L, X).
+    \end{lstlisting}
+    Результат работы:
+    \begin{lstlisting}
+?- my_delete_last([1, 2, 3], X).
+X = [1, 2].
+    \end{lstlisting}
+\end{itemize}
+    
+\subsection*{Выводы}
+
+В данной лабораторной работе я познакомилась с такой концепцией как логическое программирование и, в частности, с языком программирования Пролог. Данная концепция существенно отличается от привычной для меня концепции императивного программирования. Отличие этих двух концепций заключается в том, что в императивных языках программирования происходит описание алгоритма получения необходимого результата, а в логических - описание необходимого результата. Данный подход оказывается нетривиальным для обычного интуитивного мышления, но в этом и заключается его исключительная польза для развития мышления программистов и математиков. 
+
+\end{document}
